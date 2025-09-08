@@ -13,7 +13,7 @@ try {
 
   // Check if SMTP configuration is available
   if (process.env.SMTP_USER && process.env.SMTP_PASS) {
-    transporter = nodemailer.createTransporter({
+    transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST || "smtp.gmail.com",
       port: process.env.SMTP_PORT || 587,
       secure: false,
@@ -44,14 +44,6 @@ const forgotPassword = async (req, res) => {
       })
     }
 
-    if (!emailConfigured) {
-      console.log("❌ Email not configured - cannot send reset code")
-      return res.status(500).json({
-        success: false,
-        message: "Serviço de e-mail não configurado. Contate o administrador.",
-      })
-    }
-
     // Check if user exists
     const user = await UserModel.findByEmail(email)
     if (!user) {
@@ -69,14 +61,25 @@ const forgotPassword = async (req, res) => {
     resetCodes.set(email, {
       code,
       expires: Date.now() + 15 * 60 * 1000,
-      userId: user.id,
+      userId: user.usuario_id, // Fixed: use usuario_id instead of id
     })
+
+    if (!emailConfigured) {
+      console.log("⚠️ Email not configured - showing code directly for development")
+      return res.json({
+        success: true,
+        message: "E-mail não configurado. Use o código abaixo:",
+        developmentMode: true,
+        code: code, // Show code directly when email is not configured
+        warning: "ATENÇÃO: Em produção, configure o SMTP para envio por e-mail",
+      })
+    }
 
     console.log("📧 Sending reset code to:", email)
 
     // Send email
     const mailOptions = {
-      from: process.env.SMTP_FROM || "ivan.junior23@aluno.unifafibe.edu.br",
+      from: process.env.SMTP_FROM || "noreply@sipc.com",
       to: email,
       subject: "SIPC - Código de Recuperação de Senha",
       html: `

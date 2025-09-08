@@ -245,10 +245,23 @@
                     
                     if (data.success) {
                         userEmail = email;
-                        showSuccess('Código enviado para seu e-mail!');
+                        
+                        if (data.developmentMode && data.code) {
+                            showSuccess(`${data.message}<br><strong>Código: ${data.code}</strong>`);
+                            if (data.warning) {
+                                console.warn(data.warning);
+                            }
+                        } else {
+                            showSuccess('Código enviado para seu e-mail!');
+                        }
+                        
                         setTimeout(() => {
                             showStep(2);
                             document.getElementById('codigo').focus();
+                            
+                            if (data.developmentMode && data.code) {
+                                document.getElementById('codigo').value = data.code;
+                            }
                         }, 2000);
                     } else {
                         showError(data.message || 'E-mail não encontrado.');
@@ -343,7 +356,7 @@
                 const successElement = document.getElementById('success-message');
                 
                 errorElement.style.display = 'none';
-                successElement.textContent = message;
+                successElement.innerHTML = message;
                 successElement.style.display = 'block';
                 
                 setTimeout(() => {
