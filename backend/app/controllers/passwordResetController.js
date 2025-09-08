@@ -61,7 +61,7 @@ const forgotPassword = async (req, res) => {
     resetCodes.set(email, {
       code,
       expires: Date.now() + 15 * 60 * 1000,
-      userId: user.usuario_id, // Fixed: use usuario_id instead of id
+      userId: user.id,
     })
 
     if (!emailConfigured) {
